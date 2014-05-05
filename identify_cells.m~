@@ -1,0 +1,43 @@
+clear
+
+clc
+
+%% Gather frames from the movie and save as .jpg files; VID LENGTH < 10 sec
+
+movie = VideoReader('Ecolipresentation.m4v');
+numFrames = movie.NumberOfFrames;
+movHeight = movie.Height;
+movWidth = movie.Width;
+imageMat = {};
+
+for i = 1:1:numFrames
+    frame = read(movie,i);
+    imageMat{i} = frame;
+end
+
+print('DONE')
+
+%% Identify all cells
+
+% The first step is to substract background. We can define the background
+% as a matrix in which cells have been 'eroded'. 
+% Only use frames post frame 5, which looks like bullshits due to poorly
+% focused camera in first few frames. 
+
+imageMat_processed = {};
+
+backgroundMat = {};
+
+subtractedMat = {};
+
+for i=1:1:numFrames     
+    backgroundMat{i} = imerode(imageMat{i},strel('disk',5));
+    backgroundMat{i} = imdilate(backgroundMat{i},strel('disk',5));
+    subtractedMat{i} = (imageMat{i} - backgroundMat{i})+15;
+    level = graythresh(subtractedMat{i});
+    imageMat_processed{i} = im2bw(subtractedMat{i},level);
+    imageMat_processed{i} = imclearborder(imageMat_processed{i});
+    imageMat_processed{i} = bwareaopen(imageMat_processed{i},20);
+end
+
+%% Erode twice
