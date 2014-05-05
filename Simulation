@@ -1,0 +1,38 @@
+% A cell has an x and y coordinates, an angle (measured from the x-axis), and a length.  A cell moves at a constant
+% speed in a particular direction, but at each time step with a certain probability it switches direction randomly.  
+% When it switches direction, only the angle changes; it does not move forward in that time step.
+% Cells are modeled as line segments; the x and y corrdinates are for the midpoint.  If, after a time step, two
+% cells intersect, their angles change to approximate a collision.
+
+totaltime = 10000; % Total number of time steps the simulation runs for
+n = 100;  % no. of cells
+mean_l = 30;  % mean cell length
+dim = 1000; % side of the area the cells can move in
+v = 1;  % speed of the cell (assumed constant)
+p = 0.3; % probability of changing direction (SRW parameter)
+totaldata = zeros(totaltime, n, 4); % This is where all the data is stored
+t = 0; % Initialize start time to 0
+randomat = dim * rand(n, 4);  % Used for random start initializations: x, y, angle, length
+totaldata(1, :, :) = randomat; % x, y, angle, length
+totaldata(1, :, 3) = totaldata(1, :, 3)/dim * 360; % rescaling the angles to make sense
+totaldata(1, :, 4) = totaldata(1, :, 3)/dim * mean_l/2; % rescaling the lengths to make sense
+timevector = [2:1:10000];
+
+for i=timevector 
+   num = rand(1); % For the probability of changing directiojn
+   if num < p % Here it changes direction.
+      newtheta = rand(n, 1) * 360; % Randomly determine the new angle
+      totaldata(i, :, 1) = totaldata(i-1, :, 1); % x-coord stays the same
+      totaldata(i, :, 2) = totaldata(i-1, :, 2); % y-coord stays the same
+      totaldata(i, :, 3) = newtheta; % angle changes to new angle
+      totaldata(i, :, 4) = totaldata(i-1, :, 4); % length stays the same (obviously)
+   else % Here it keeps going
+      totaldata(i, :, 1) = totaldata(i-1, :, 1) + v*cosd(totaldata(i-1, :, 3)); % advance x-coord
+      totaldata(i, :, 2) = totaldata(i-1, :, 2) + v*sind(totaldata(i-1, :, 3)); % advance y-coord
+      totaldata(i, :, 3) = totaldata(i-1, :, 3); % angle stays the same
+      totaldata(i, :, 4) = totaldata(i-1, :, 4); % length stays the same
+   end
+
+   calculateIntersections(totaldata(i, :, :));  % This function deals with the collisions
+     
+end
