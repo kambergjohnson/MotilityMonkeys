@@ -1,0 +1,32 @@
+% This function does the collision stuff.  If two lines (cells) intersect, and the angle between them is less that 90 degrees
+% then the angles swap.  If the angle between them is greater than or equal to 90 degrees the angles swap and are made 
+% opposite.
+
+function [currdata] = calculateIntersections(currdata)
+% This extracts the necessary info (x and y coords for the two endpoints of the line segments)
+	x_1_coords = currdata(:, 1) - currdata(:, 4)*cosd(currdata(:, 3));
+        y_1_coords = currdata(:, 2) - currdata(:, 4)*sind(currdata(:, 3));
+	x_2_coords = currdata(:, 1) + currdata(:, 4)*cosd(currdata(:, 3));
+        y_2_coords = currdata(:, 2) + currdata(:, 4)*sind(currdata(:, 3));
+
+	inputmatrix = horzcat(x_1_coords, y_1_coords, x_2_coords, y_2_coords); % The data to calculate if two cells intersect
+	out = lineSegmentIntersect(inputmatrix, inputmatrix); % This function (by some guy whose name I will find later) produces 
+	                                                       % various matrices that document interesections between the cells
+
+	[row, col] = find(out.intAdjacencyMatrix); % finds all intersections
+	
+	% This does the approporiate calculation for the collisions
+	for i=row;
+	   for j=col;
+		if(abs(currdata(i, 3)-currdata(j, 3))) < 90 
+            
+	  	   holder = currdata(j, 3);
+	   	   currdata(j, 3) = currdata(i, 3); % Swapping angles
+	   	   currdata(i, 3) = holder;
+		else
+	   	   holder = currdata(j, 3) + 180;
+	   	   currdata(j, 3) = currdata(i, 3) + 180; % Swapping angles with 180 degree shift
+	   	   currdata(i, 3) = holder;
+	   end
+	end
+end
